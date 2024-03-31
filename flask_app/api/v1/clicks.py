@@ -1,8 +1,10 @@
 import datetime
+from http import HTTPStatus
 
 from flask_restful import Resource, reqparse
 
 from api.utils import send_message
+from kafka_topics.create_topics import Topics
 from schemas.clicks import ClickSchema
 
 parser = reqparse.RequestParser()
@@ -42,6 +44,6 @@ class Clicks(Resource):
         args = parser.parse_args()
         args['time'] = datetime.datetime.fromtimestamp(args['time'])
         user_click = self.schema.dump(args)
-        send_message('clicks', user_click['obj_id'], user_click)
+        send_message(Topics.CLICKS, user_click['obj_id'], user_click)
 
-        return '', 201
+        return '', HTTPStatus.CREATED

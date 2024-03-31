@@ -1,8 +1,10 @@
 import datetime
+from http import HTTPStatus
 
 from flask_restful import Resource, reqparse
 
 from api.utils import send_message
+from kafka_topics.create_topics import Topics
 from schemas.custom_events import CustomEventsSchema
 
 parser = reqparse.RequestParser()
@@ -49,5 +51,5 @@ class CustomEvents(Resource):
         args = parser.parse_args()
         args['time'] = datetime.datetime.fromtimestamp(args['time'])
         user_event = self.schema.dump(args)
-        send_message('custom_events', user_event['key'], user_event)
-        return '', 201
+        send_message(Topics.CUSTOM_EVENTS, user_event['key'], user_event)
+        return '', HTTPStatus.CREATED

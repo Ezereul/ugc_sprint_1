@@ -1,6 +1,16 @@
+from enum import StrEnum
+
 from kafka import KafkaAdminClient
 from kafka.admin import NewTopic
 from kafka.errors import TopicAlreadyExistsError
+
+
+class Topics(StrEnum):
+    CLICKS = 'clicks'
+    CUSTOM_EVENTS = 'custom_events'
+    VIEWS = 'views'
+    PAGES = 'pages'
+
 
 
 def create_topics():
@@ -10,12 +20,17 @@ def create_topics():
         bootstrap_servers=app.config['KAFKA_URL'],
     )
     topic_list = list()
-    topic_names = ['clicks', 'custom_events', 'views', 'pages']
 
-    for name in topic_names:
-        topic_list.append(NewTopic(name=name, num_partitions=3, replication_factor=3,
-                                   topic_configs={'retention.ms': '86400000',
-                                                  'min.insync.replicas': '2'}))
+    for name in Topics:
+        topic_list.append(NewTopic(
+            name=name,
+            num_partitions=app.config['KAFKA_NUM_PARTITIONS'],
+            replication_factor=app.config['KAFKA_REPLICATION_FACTOR'],
+            topic_configs={
+                'retention.ms': app.config['KAFKA_RETENTION_MS'],
+                'min.insync.replicas': app.config['KAFKA_MIN_INSYNC_REPLICAS']
+            }
+        ))
 
     try:
         admin_client.create_topics(new_topics=topic_list, validate_only=False)

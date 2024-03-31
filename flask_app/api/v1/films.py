@@ -1,8 +1,10 @@
 import datetime
+from http import HTTPStatus
 
 from flask_restful import Resource, reqparse
 
 from api.utils import send_message
+from kafka_topics.create_topics import Topics
 from schemas.films import FilmsSchema
 
 parser = reqparse.RequestParser()
@@ -50,5 +52,5 @@ class Films(Resource):
         args['time'] = datetime.datetime.fromtimestamp(args['time'])
         args['timecode'] = datetime.datetime.strptime(args['timecode'], '%H:%M:%S.%f')
         user_event = self.schema.dump(args)
-        send_message('views', user_event['film_id'], user_event)
-        return '', 201
+        send_message(Topics.VIEWS, user_event['film_id'], user_event)
+        return '', HTTPStatus.CREATED

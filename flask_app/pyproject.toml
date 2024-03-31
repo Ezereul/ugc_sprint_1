@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "ugc"
+version = "0.1.0"
+description = ""
+authors = [
+    "Maxim Isaev <isaev_0602@mail.ru>",
+    "Ilya Kabeshov <ilua.kabeshov01@mail.ru>",
+    "Leonid Maslovsky <maslovskie77@gmail.com>"
+]
+#readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Flask = "3.0.2"
+Flask-JWT-Extended = "4.6.0"
+Flask-RESTful = "0.3.10"
+Flasgger = "0.9.7.1"
+kafka-python = "2.0.2"
+orjson = "3.10.0"
+marshmallow = "3.21.1"
+gevent = "24.2.1"
+python-dotenv = "1.0.1"
