@@ -1,6 +1,7 @@
 import datetime
 from http import HTTPStatus
 
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource, reqparse
 
 from api.utils import send_message
@@ -17,8 +18,9 @@ parser.add_argument('access_token_cookie', location='cookies')
 class Films(Resource):
     schema = FilmsSchema()
 
+    @jwt_required()
     def post(self, *args, **kwargs):
-        """Endpoint to create a new info from user.
+        """Endpoint to save a new events from user about films.
         ---
         parameters:
           - name: body
@@ -44,13 +46,17 @@ class Films(Resource):
                   description: Film timecode.
                   default: None
                   example: "03:12:58.019077"
+        security:
+          - cookieAuth: []
         responses:
           201:
             description: Responses status
         """
+        user_id = get_jwt_identity()
         args = parser.parse_args()
         args['time'] = datetime.datetime.fromtimestamp(args['time'])
         args['timecode'] = datetime.datetime.strptime(args['timecode'], '%H:%M:%S.%f')
+        args['user_id'] = user_id
         user_event = self.schema.dump(args)
-        send_message(Topics.VIEWS, user_event['film_id'], user_event)
+        send_message(Topics.VIEWS, user_event['user_id'], user_event)
         return '', HTTPStatus.CREATED

@@ -1,6 +1,7 @@
 import orjson
 from flasgger import Swagger
 from flask import Flask
+from flask_jwt_extended import JWTManager
 from flask_restful import Api
 from kafka import KafkaProducer
 
@@ -19,6 +20,8 @@ app.config.from_pyfile("config/settings.py")
 producer = KafkaProducer(bootstrap_servers=app.config['KAFKA_URL'],
                          value_serializer=orjson.dumps,
                          key_serializer=orjson.dumps)
+
+jwt = JWTManager(app)
 
 api.add_resource(Clicks, '/clicks/')
 api.add_resource(Pages, '/pages/')
