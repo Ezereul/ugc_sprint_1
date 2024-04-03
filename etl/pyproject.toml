@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "ugc"
+version = "0.1.0"
+description = ""
+authors = [
+    "Maxim Isaev <isaev_0602@mail.ru>",
+    "Ilya Kabeshov <ilua.kabeshov01@mail.ru>",
+    "Leonid Maslovsky <maslovskie77@gmail.com>"
+]
+#readme = "README.md"
+
+
+[tool.poetry.dependencies]
+python = "^3.11"
+aiokafka = "0.10.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

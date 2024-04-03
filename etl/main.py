@@ -3,7 +3,8 @@ from enum import StrEnum
 
 from aiokafka import AIOKafkaConsumer
 
-BOOTSTRAP = 'localhost:9094'
+BOOTSTRAP_SERVER = 'localhost:9094'
+CONSUMER_TIMEOUT_MS = 10 * 1000
 
 
 class Topics(StrEnum):
@@ -13,8 +14,8 @@ class Topics(StrEnum):
     PAGES = 'pages'
 
 
-async def main():
-    consumer = AIOKafkaConsumer(*Topics, bootstrap_servers=BOOTSTRAP)
+async def start_consumer(topic):
+    consumer = AIOKafkaConsumer(topic, bootstrap_servers=BOOTSTRAP_SERVER)
     try:
         await consumer.start()
         async for msg in consumer:
@@ -22,6 +23,11 @@ async def main():
     finally:
         await consumer.stop()
 
+
+async def main():
+    consumers_coros = [start_consumer(topic) for topic in Topics]
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(coro) for coro in consumers_coros]
 
 
 if __name__ == '__main__':
