@@ -12,7 +12,6 @@ parser = reqparse.RequestParser()
 parser.add_argument('film_id', location='json')
 parser.add_argument('time', location='json', type=int)
 parser.add_argument('timecode', location='json')
-parser.add_argument('access_token_cookie', location='cookies')
 
 
 class Films(Resource):
@@ -35,14 +34,15 @@ class Films(Resource):
                 film_id:
                   type: string
                   description: Film id.
-                  default: "string"
+                  default: None
+                  example: "ccc94e57-a383-450b-a1e2-7be0a2786fa2"
                 time:
                   type: int
                   description: Time when event happened.
                   default: None
                   example: 1646240200
                 timecode:
-                  type: int
+                  type: str
                   description: Film timecode.
                   default: None
                   example: "03:12:58.019077"

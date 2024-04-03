@@ -11,7 +11,6 @@ from schemas.custom_events import CustomEventsSchema
 parser = reqparse.RequestParser()
 parser.add_argument('information', location='json', type=dict)
 parser.add_argument('time', location='json', type=int)
-parser.add_argument('access_token_cookie', location='cookies')
 
 
 class CustomEvents(Resource):
