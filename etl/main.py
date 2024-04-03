@@ -5,15 +5,13 @@ from aiokafka import AIOKafkaConsumer
 
 from src.constants import Topics
 from src.schemas import TOPIC_TO_SCHEMA
-
-BOOTSTRAP_SERVER = 'localhost:9094'
-CONSUMER_TIMEOUT_MS = 10 * 1000
+from src.config import settings
 
 
 async def start_consumer(topic: str):
     consumer = AIOKafkaConsumer(
         topic,
-        bootstrap_servers=BOOTSTRAP_SERVER,
+        bootstrap_servers=settings.kafka_url,
         value_deserializer=lambda value: msgspec.json.decode(value, type=TOPIC_TO_SCHEMA[topic])
     )
     try:
