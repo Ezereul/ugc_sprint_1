@@ -1,6 +1,7 @@
 import datetime
 from http import HTTPStatus
 
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource, reqparse
 
 from api.utils import send_message
@@ -16,8 +17,9 @@ parser.add_argument('access_token_cookie', location='cookies')
 class Clicks(Resource):
     schema = ClickSchema()
 
+    @jwt_required()
     def post(self, *args, **kwargs):
-        """Endpoint to create a new info from user.
+        """Endpoint to save click events from user.
         ---
         parameters:
           - name: body
@@ -37,13 +39,17 @@ class Clicks(Resource):
                   description: Time when event happened.
                   default: None
                   example: 1646240200
+        security:
+          - cookieAuth: []
         responses:
           201:
             description: Responses status
         """
+        user_id = get_jwt_identity()
         args = parser.parse_args()
         args['time'] = datetime.datetime.fromtimestamp(args['time'])
+        args['user_id'] = user_id
         user_click = self.schema.dump(args)
-        send_message(Topics.CLICKS, user_click['obj_id'], user_click)
+        send_message(Topics.CLICKS, user_click['user_id'], user_click)
 
         return '', HTTPStatus.CREATED

@@ -1,6 +1,7 @@
 import datetime
 from http import HTTPStatus
 
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 
 from api.utils import send_message
@@ -8,7 +9,6 @@ from kafka_topics.create_topics import Topics
 from schemas.custom_events import CustomEventsSchema
 
 parser = reqparse.RequestParser()
-parser.add_argument('key', location='json')
 parser.add_argument('information', location='json', type=dict)
 parser.add_argument('time', location='json', type=int)
 parser.add_argument('access_token_cookie', location='cookies')
@@ -17,8 +17,9 @@ parser.add_argument('access_token_cookie', location='cookies')
 class CustomEvents(Resource):
     schema = CustomEventsSchema()
 
+    @jwt_required()
     def post(self, *args, **kwargs):
-        """Endpoint to create a new info from user.
+        """Endpoint to save some custom events from user.
         ---
         parameters:
           - name: body
@@ -27,13 +28,8 @@ class CustomEvents(Resource):
             required: true
             schema:
               required:
-                - key
                 - information
               properties:
-                key:
-                  type: string
-                  description: Key of event.
-                  default: "string"
                 time:
                   type: int
                   description: Time when event happened.
@@ -44,12 +40,16 @@ class CustomEvents(Resource):
                   description: Custom information.
                   default: None
                   example: {"info": "event description"}
+        security:
+          - cookieAuth: []
         responses:
           201:
             description: Responses status
         """
+        user_id = get_jwt_identity()
         args = parser.parse_args()
         args['time'] = datetime.datetime.fromtimestamp(args['time'])
+        args['user_id'] = user_id
         user_event = self.schema.dump(args)
-        send_message(Topics.CUSTOM_EVENTS, user_event['key'], user_event)
+        send_message(Topics.CUSTOM_EVENTS, user_event['user_id'], user_event)
         return '', HTTPStatus.CREATED
