@@ -1,21 +1,21 @@
 import asyncio
-from enum import StrEnum
 
+import msgspec
 from aiokafka import AIOKafkaConsumer
+
+from src.constants import Topics
+from src.schemas import TOPIC_TO_SCHEMA
 
 BOOTSTRAP_SERVER = 'localhost:9094'
 CONSUMER_TIMEOUT_MS = 10 * 1000
 
 
-class Topics(StrEnum):
-    CLICKS = 'clicks'
-    CUSTOM_EVENTS = 'custom_events'
-    VIEWS = 'views'
-    PAGES = 'pages'
-
-
-async def start_consumer(topic):
-    consumer = AIOKafkaConsumer(topic, bootstrap_servers=BOOTSTRAP_SERVER)
+async def start_consumer(topic: str):
+    consumer = AIOKafkaConsumer(
+        topic,
+        bootstrap_servers=BOOTSTRAP_SERVER,
+        value_deserializer=lambda value: msgspec.json.decode(value, type=TOPIC_TO_SCHEMA[topic])
+    )
     try:
         await consumer.start()
         async for msg in consumer:
