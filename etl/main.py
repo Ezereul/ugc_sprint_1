@@ -29,33 +29,35 @@ async def start_consumer(topic: str):
 
     try:
         await consumer.start()
-        logger.debug("Consumer for topic \"%s\" was started successfully." % topic)
+        logger.info("Consumer for topic \"%s\" was successfully started." % topic)
 
         while True:
             topic_msgs: list[type[BaseEvent]] = []
-            start_topic_partition_offset: dict[TopicPartition, int] = {}
+            backup_offsets: dict[TopicPartition, int] = {}
             await consumer.seek_to_committed()
+
             result = await consumer.getmany(timeout_ms=settings.consumer_timeout_ms)
 
             if not result:
-                logger.info('Topic \"%s\" has no records.' % topic)
+                logger.info('Topic \"%s\" has 0 records.' % topic)
                 await asyncio.sleep(settings.consumer_timeout_ms / 1000)
                 continue
 
             for partition, partition_msgs in result.items():
-                start_topic_partition_offset[partition] = partition_msgs[0].offset
+                backup_offsets[partition] = partition_msgs[0].offset
                 topic_msgs.extend([msg.value for msg in partition_msgs])
 
-            logger.debug(start_topic_partition_offset)
+            logger.debug(backup_offsets)
 
             if len(topic_msgs) < settings.consumer_min_batch_size:
-                logger.info('Topic \"%s\" is sleeping. Found %s records.' % (topic, len(topic_msgs)))
-                await consumer.commit(start_topic_partition_offset)
+                logger.info('Topic \"%s\" has not enough records (%s/%s). Partitions count: %s.' %
+                            (topic, len(topic_msgs), settings.consumer_min_batch_size, len(backup_offsets)))
+                await consumer.commit(backup_offsets)
                 await asyncio.sleep(settings.consumer_timeout_ms / 1000)
                 continue
-            else:
-                await load_stub(topic, topic_msgs)
-                await consumer.commit()
+
+            await load_stub(topic, topic_msgs)
+            await consumer.commit()
 
     finally:
         await consumer.stop()
