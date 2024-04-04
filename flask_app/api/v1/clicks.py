@@ -11,7 +11,6 @@ from schemas.clicks import ClickSchema
 parser = reqparse.RequestParser()
 parser.add_argument('obj_id', location='json')
 parser.add_argument('time', location='json', type=int)
-parser.add_argument('access_token_cookie', location='cookies')
 
 
 class Clicks(Resource):

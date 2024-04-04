@@ -12,7 +12,6 @@ parser = reqparse.RequestParser()
 parser.add_argument('url', location='json')
 parser.add_argument('time', location='json', type=int)
 parser.add_argument('duration', location='json', type=int)
-parser.add_argument('access_token_cookie', location='cookies')
 
 
 class Pages(Resource):
@@ -42,10 +41,10 @@ class Pages(Resource):
                   default: None
                   example: 1646240200
                 duration:
-                  type: int
+                  type: float
                   description: Duration of page view in seconds.
                   default: None
-                  example: 16
+                  example: 16.0
         security:
           - cookieAuth: []
         responses:
