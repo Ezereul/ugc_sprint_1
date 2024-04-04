@@ -27,34 +27,28 @@ async def start_consumer(topic: str):
         auto_offset_reset='earliest',
     )
 
-    try:
-        await consumer.start()
-        logger.info("Consumer for topic \"%s\" was successfully started." % topic)
-
+    async with consumer:
         t_partitions = [TopicPartition(topic, partition) for partition in consumer.partitions_for_topic(topic)]
 
         while True:
             last_offsets = await consumer.end_offsets(t_partitions)
             commit_offsets = await consumer.seek_to_committed(*t_partitions)
 
-            new_records_count = sum(offset_last - (offset_commit or 0)
-                                    for offset_last, offset_commit
-                                    in zip(last_offsets.values(), commit_offsets.values()))
+            new_records_count = sum(map(
+                lambda a, b: a - (b or 0),
+                last_offsets.values(), commit_offsets.values()
+            ))
 
-            if new_records_count < settings.consumer_min_batch_size:
-                logger.info('topic="%s", records (%s/%s)' %
-                            (topic, new_records_count, settings.consumer_min_batch_size))
+            if new_records_count >= settings.consumer_min_poll_records:
+                result = await consumer.getmany(timeout_ms=settings.consumer_timeout_ms)
+                values = [record.value for sublist in result.values() for record in sublist]
+
+                await load_stub(topic, values)
+                await consumer.commit()
+
+            else:
+                logger.info('"%s", records (%s/%s).' % (topic, new_records_count, settings.consumer_min_poll_records))
                 await asyncio.sleep(settings.consumer_timeout_ms / 1000)
-                continue
-
-            result = await consumer.getmany(timeout_ms=settings.consumer_timeout_ms)
-            values = [record.value for sublist in result.values() for record in sublist]
-
-            await load_stub(topic, values)
-            await consumer.commit()
-
-    finally:
-        await consumer.stop()
 
 
 async def main():
