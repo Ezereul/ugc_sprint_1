@@ -7,7 +7,7 @@ from aiokafka.structs import TopicPartition
 
 from src.config import settings
 from src.constants import Topics
-from src.schemas import TOPIC_TO_SCHEMA, BaseEvent
+from src.schemas import TOPIC_TO_SCHEMA
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format=settings.log_format, level=settings.log_level)
@@ -31,32 +31,26 @@ async def start_consumer(topic: str):
         await consumer.start()
         logger.info("Consumer for topic \"%s\" was successfully started." % topic)
 
+        t_partitions = [TopicPartition(topic, partition) for partition in consumer.partitions_for_topic(topic)]
+
         while True:
-            topic_msgs: list[type[BaseEvent]] = []
-            backup_offsets: dict[TopicPartition, int] = {}
-            await consumer.seek_to_committed()
+            last_offsets = await consumer.end_offsets(t_partitions)
+            commit_offsets = await consumer.seek_to_committed(*t_partitions)
+
+            new_records_count = sum(offset_last - (offset_commit or 0)
+                                    for offset_last, offset_commit
+                                    in zip(last_offsets.values(), commit_offsets.values()))
+
+            if new_records_count < settings.consumer_min_batch_size:
+                logger.info('topic="%s", records (%s/%s)' %
+                            (topic, new_records_count, settings.consumer_min_batch_size))
+                await asyncio.sleep(settings.consumer_timeout_ms / 1000)
+                continue
 
             result = await consumer.getmany(timeout_ms=settings.consumer_timeout_ms)
+            values = [record.value for sublist in result.values() for record in sublist]
 
-            if not result:
-                logger.info('Topic \"%s\" has 0 records.' % topic)
-                await asyncio.sleep(settings.consumer_timeout_ms / 1000)
-                continue
-
-            for partition, partition_msgs in result.items():
-                backup_offsets[partition] = partition_msgs[0].offset
-                topic_msgs.extend([msg.value for msg in partition_msgs])
-
-            logger.debug(backup_offsets)
-
-            if len(topic_msgs) < settings.consumer_min_batch_size:
-                logger.info('Topic \"%s\" has not enough records (%s/%s). Partitions count: %s.' %
-                            (topic, len(topic_msgs), settings.consumer_min_batch_size, len(backup_offsets)))
-                await consumer.commit(backup_offsets)
-                await asyncio.sleep(settings.consumer_timeout_ms / 1000)
-                continue
-
-            await load_stub(topic, topic_msgs)
+            await load_stub(topic, values)
             await consumer.commit()
 
     finally:
