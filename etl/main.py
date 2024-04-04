@@ -1,16 +1,11 @@
 import asyncio
-import logging
-
-from src.core.config import settings
+from src.core.config import settings, logger
 from src.core.constants import Topics
 from src.components.consumer import get_kafka_consumer
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(format=settings.log_format, level=settings.log_level)
-
 
 async def load_stub(topic: str, msgs: list):
-    logger.critical("CLICKHOUSE \"%s\" got new messages. Msgs=%s." % (topic, len(msgs)))
+    logger.critical("CLICKHOUSE \"%s\" got new messages. Msgs=%s." % (topic, msgs[0]))
 
 
 async def start_consumer(topic: str):
@@ -27,7 +22,7 @@ async def start_consumer(topic: str):
                 result = await consumer.getmany(timeout_ms=settings.consumer_timeout_ms)
                 values = [record.value for sublist in result.values() for record in sublist]
 
-                await load_stub(topic, values)  # загрузка данных; добавлю try-except, save будет только при успешной
+                await load_stub(topic, values)  # загрузка данных; добавлю try-except, commit будет только при успешной
                 await consumer.commit()
 
             else:

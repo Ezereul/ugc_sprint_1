@@ -1,8 +1,9 @@
+import logging
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 ENV_PATH = PROJECT_ROOT / '.env'
 
 
@@ -17,3 +18,6 @@ class ETLSettings(BaseSettings):
 
 
 settings = ETLSettings()
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(format=settings.log_format, level=settings.log_level)
