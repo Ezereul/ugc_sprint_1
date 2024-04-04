@@ -1,13 +1,9 @@
 import asyncio
 import logging
 
-import msgspec
-from aiokafka import AIOKafkaConsumer
-from aiokafka.structs import TopicPartition
-
 from src.config import settings
 from src.constants import Topics
-from src.schemas import TOPIC_TO_SCHEMA
+from src.consumer import get_kafka_consumer
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format=settings.log_format, level=settings.log_level)
@@ -18,32 +14,20 @@ async def load_stub(topic: str, msgs: list):
 
 
 async def start_consumer(topic: str):
-    consumer = AIOKafkaConsumer(
-        topic,
-        bootstrap_servers=settings.kafka_url,
-        value_deserializer=lambda value: msgspec.json.decode(value, type=TOPIC_TO_SCHEMA[topic]),
-        enable_auto_commit=False,
-        group_id=topic,
-        auto_offset_reset='earliest',
-    )
-
-    async with consumer:
-        t_partitions = [TopicPartition(topic, partition) for partition in consumer.partitions_for_topic(topic)]
+    async with get_kafka_consumer(topic) as consumer:
+        t_partitions = consumer.assignment()
 
         while True:
             last_offsets = await consumer.end_offsets(t_partitions)
             commit_offsets = await consumer.seek_to_committed(*t_partitions)
 
-            new_records_count = sum(map(
-                lambda a, b: a - (b or 0),
-                last_offsets.values(), commit_offsets.values()
-            ))
+            new_records_count = sum(last_offsets.values()) - sum(filter(bool, commit_offsets.values()))
 
             if new_records_count >= settings.consumer_min_poll_records:
                 result = await consumer.getmany(timeout_ms=settings.consumer_timeout_ms)
                 values = [record.value for sublist in result.values() for record in sublist]
 
-                await load_stub(topic, values)
+                await load_stub(topic, values)  # загрузка данных; добавлю try-except, save будет только при успешной
                 await consumer.commit()
 
             else:
