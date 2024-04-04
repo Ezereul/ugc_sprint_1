@@ -1,9 +1,9 @@
 import asyncio
 import logging
 
-from src.config import settings
-from src.constants import Topics
-from src.consumer import get_kafka_consumer
+from src.core.config import settings
+from src.core.constants import Topics
+from src.components.consumer import get_kafka_consumer
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format=settings.log_format, level=settings.log_level)

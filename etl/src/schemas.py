@@ -4,7 +4,7 @@ from uuid import UUID
 
 import msgspec
 
-from src.constants import Topics
+from src.core.constants import Topics
 
 
 class BaseEvent(msgspec.Struct, kw_only=True):

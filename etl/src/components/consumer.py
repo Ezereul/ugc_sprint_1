@@ -1,7 +1,7 @@
 import msgspec
 from aiokafka import AIOKafkaConsumer
 
-from src.config import settings
+from src.core.config import settings
 from src.schemas import TOPIC_TO_SCHEMA
 
 
