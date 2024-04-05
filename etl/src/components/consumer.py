@@ -1,8 +1,8 @@
 import msgspec
 from aiokafka import AIOKafkaConsumer
 
-from src.core.config import settings
-from src.schemas import TOPIC_TO_SCHEMA
+from etl.src.core.config import settings
+from etl.src.schemas import TOPIC_TO_SCHEMA
 
 
 def _msgspec_deserializer(binary_str: bytes, schema: type[msgspec.Struct]):

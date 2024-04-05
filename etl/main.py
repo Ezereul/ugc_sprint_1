@@ -5,7 +5,7 @@ from src.components.consumer import get_kafka_consumer
 
 
 async def load_stub(topic: str, msgs: list):
-    logger.critical("CLICKHOUSE \"%s\" got new messages. Msgs=%s." % (topic, msgs[0]))
+    logger.critical("CLICKHOUSE \"%s\" got new messages. Msgs=%s." % (topic, msgs))
 
 
 async def start_consumer(topic: str):
