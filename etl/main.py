@@ -1,11 +1,42 @@
 import asyncio
+import json
+
+import aiochclient
+from msgspec.json import decode
+from uuid import UUID
+
 from src.core.config import settings, logger
 from src.core.constants import Topics
 from src.components.consumer import get_kafka_consumer
+from src.schemas import BaseEvent, Click, Page, CustomEvent, View
+from aiohttp import ClientSession
+from aiochclient import ChClient
 
 
-async def load_stub(topic: str, msgs: list):
-    logger.critical("CLICKHOUSE \"%s\" got new messages. Msgs=%s." % (topic, msgs))
+async def load_stub(topic: str, values: list[Click | Page| CustomEvent | View]):
+    rows_to_insert = []
+    for event in values:
+        row = [event.user_id, event.time]
+
+        if topic == Topics.CLICKS:
+            row.extend([event.obj_id])
+        elif topic == Topics.VIEWS:
+            row.extend([event.film_id, event.timecode.strftime("%H:%M:%S.%f")])
+        elif topic == Topics.PAGES:
+            row.extend([event.url, event.duration])
+        elif topic == Topics.CUSTOM_EVENTS:
+            row.extend([json.dumps(event.information)])
+
+        rows_to_insert.append(tuple(row))
+    print(rows_to_insert)
+
+
+    async with ClientSession() as session:
+        client = ChClient(session)
+        await client.execute(
+            f'INSERT INTO default.{topic}_distributed VALUES',
+            *rows_to_insert,
+        )
 
 
 async def start_consumer(topic: str):
