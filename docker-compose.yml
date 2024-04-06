@@ -14,6 +14,22 @@ services:
 #      kafka-2:
 #        condition: service_healthy
 
+  etl-ugc:
+    build:
+      context: ./etl
+    env_file:
+      - .env
+    depends_on:
+      - clickhouse-node1
+      - clickhouse-node2
+      - clickhouse-node3
+      - clickhouse-node4
+      - kafka-0
+      - kafka-1
+      - kafka-2
+      - zookeeper
+
+
   kafka-0:
     image: bitnami/kafka:3.4
     ports:

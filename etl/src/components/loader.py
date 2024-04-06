@@ -2,11 +2,13 @@ import asyncio
 from aiohttp import ClientSession
 from aiochclient import ChClient
 
+from src.core.config import settings
+
 hosts = [
-    ('localhost', 8123, 'shard1', 'replica_1'),
-    ('localhost', 8124, 'shard1', 'replica_2'),
-    ('localhost', 8125, 'shard2', 'replica_1'),
-    ('localhost', 8126, 'shard2', 'replica_2'),
+    (settings.clickhouse_1_host, settings.clickhouse_1_port, 'shard1', 'replica_1'),
+    (settings.clickhouse_2_host, settings.clickhouse_2_port, 'shard1', 'replica_2'),
+    (settings.clickhouse_3_host, settings.clickhouse_3_port, 'shard2', 'replica_1'),
+    (settings.clickhouse_4_host, settings.clickhouse_4_port, 'shard2', 'replica_2'),
 ]
 
 async def create_tables(session, host, port, shard, replica):

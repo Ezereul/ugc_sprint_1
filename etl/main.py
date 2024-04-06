@@ -1,16 +1,13 @@
 import asyncio
 import json
 
-import aiochclient
-from msgspec.json import decode
-from uuid import UUID
+from aiohttp import ClientSession
+from aiochclient import ChClient
 
 from src.core.config import settings, logger
 from src.core.constants import Topics
 from src.components.consumer import get_kafka_consumer
-from src.schemas import BaseEvent, Click, Page, CustomEvent, View
-from aiohttp import ClientSession
-from aiochclient import ChClient
+from src.schemas import Click, Page, CustomEvent, View
 
 
 async def load_stub(topic: str, values: list[Click | Page| CustomEvent | View]):
@@ -32,7 +29,7 @@ async def load_stub(topic: str, values: list[Click | Page| CustomEvent | View]):
 
 
     async with ClientSession() as session:
-        client = ChClient(session)
+        client = ChClient(session, url=f"http://{settings.clickhouse_1_host}:{settings.clickhouse_1_port}")
         await client.execute(
             f'INSERT INTO default.{topic}_distributed VALUES',
             *rows_to_insert,
