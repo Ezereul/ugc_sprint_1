@@ -13,7 +13,10 @@ wait_for_kafka_cluster() {
 }
 
 wait_for_clickhouse_cluster() {
-    for clickhouse_host in "${CLICKHOUSE_1_HOST}:${CLICKHOUSE_1_PORT}" "${CLICKHOUSE_2_HOST}:${CLICKHOUSE_2_PORT}" "${CLICKHOUSE_3_HOST}:${CLICKHOUSE_3_PORT}" "${CLICKHOUSE_4_HOST}:${CLICKHOUSE_4_PORT}"; do
+    for clickhouse_host in "${CLICKHOUSE_1_HOST}:${CLICKHOUSE_1_PORT}" \
+                           "${CLICKHOUSE_2_HOST}:${CLICKHOUSE_2_PORT}" \
+                           "${CLICKHOUSE_3_HOST}:${CLICKHOUSE_3_PORT}" \
+                           "${CLICKHOUSE_4_HOST}:${CLICKHOUSE_4_PORT}"; do
         IFS=: read host port <<< $clickhouse_host
         echo "Проверка доступности ClickHouse на $host порт $port..."
         until curl -s "http://${host}:${port}" > /dev/null; do

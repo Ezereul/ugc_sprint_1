@@ -1,6 +1,7 @@
 import asyncio
-from aiohttp import ClientSession
+
 from aiochclient import ChClient
+from aiohttp import ClientSession
 
 from src.core.config import settings
 
@@ -10,6 +11,7 @@ hosts = [
     (settings.clickhouse_3_host, settings.clickhouse_3_port, 'shard2', 'replica_1'),
     (settings.clickhouse_4_host, settings.clickhouse_4_port, 'shard2', 'replica_2'),
 ]
+
 
 async def create_tables(session, host, port, shard, replica):
     client = ChClient(session, url=f"http://{host}:{port}")
@@ -49,7 +51,7 @@ async def create_tables(session, host, port, shard, replica):
             CREATE TABLE IF NOT EXISTS default.{table_name}_distributed AS {database_name}.{table_name}
             ENGINE = Distributed('company_cluster', '', '{table_name}', cityHash64({order_key}))
             """)
-            print(f"Distributed tables created on {host}:{port}")
+
 
 async def main():
     async with ClientSession() as session:
