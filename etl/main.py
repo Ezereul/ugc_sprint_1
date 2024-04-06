@@ -25,8 +25,6 @@ async def load_stub(topic: str, values: list[Click | Page| CustomEvent | View]):
             row.extend([json.dumps(event.information)])
 
         rows_to_insert.append(tuple(row))
-    print(rows_to_insert)
-
 
     async with ClientSession() as session:
         client = ChClient(session, url=f"http://{settings.clickhouse_1_host}:{settings.clickhouse_1_port}")
@@ -50,8 +48,11 @@ async def start_consumer(topic: str):
                 result = await consumer.getmany(timeout_ms=settings.consumer_timeout_ms)
                 values = [record.value for sublist in result.values() for record in sublist]
 
-                await load_stub(topic, values)  # загрузка данных; добавлю try-except, commit будет только при успешной
-                await consumer.commit()
+                try:
+                    await load_stub(topic, values)
+                    await consumer.commit()
+                except Exception:
+                    logger.exception("Error while loading in Clickhouse")
 
             else:
                 logger.info('"%s", records (%s/%s).' % (topic, new_records_count, settings.consumer_min_poll_records))

@@ -16,6 +16,7 @@ hosts = [
 async def create_tables(session, host, port, shard, replica):
     client = ChClient(session, url=f"http://{host}:{port}")
 
+    # задаем название базы на основе того, на какой реплике мы находимся
     database_name = "shard" if "replica_1" in replica else "replica"
 
     await client.execute(f"CREATE DATABASE IF NOT EXISTS {database_name}")
