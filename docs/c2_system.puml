@@ -1,0 +1,63 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Container.puml
+
+title C2 диаграмма Онлайн-кинотеатра
+
+System_Boundary(yandex, "Яндекс ID") {
+    System_Ext(ya_official_api, "Официальный API")
+}
+
+Person(admin, "Администратор")
+Person(user, "Пользователь")
+
+System_Boundary(ugc, "UGC") {
+    Container(ugc_flask, "Внешний API", "Flask", "Получение событий из внешних систем")
+    ContainerDb(ugc_kafka, "Брокер сообщений", "Kafka", "Стриминг событий")
+    Container(ugc_etl, "ETL", "Python", "Перенос событий")
+    ContainerDb(ugc_clickhouse, "Хранилище событий", "Clickhouse", "Хранение и анализ событий")
+}
+
+System_Boundary(cinema, "Онлайн-кинотеатр") {
+    Container(movies_admin, "Панель администратора", "Django", "Изменение контента")
+    Container(movies_etl, "ETL", "Python", "Перемещение обновлений контента в поиск")
+    Container(movies_api, "API контента", "FastAPI", "Выдача контента")
+    Container(auth_api, "API авторизации", "FastAPI", "Авторизация, изменение данных об аккаунте")
+
+    ContainerDb(movies_database, "Хранилище контента", "PostrgeSQL", "Хранение фильмов")
+    ContainerDb(movies_elastic, "Поисковый движок", "Elasticsearch", "Поиск по контенту")
+    ContainerDb(movies_redis, "Хранилище кэша", "Redis", "Хранение кэша контента")
+    ContainerDb(auth_redis, "Хранилище кэша", "Redis", "Хранение кэша авторизаций")
+    ContainerDb(auth_database, "Хранилище данных", "PostrgeSQL", "Хранение данных по авторизациям")
+}
+
+Rel(user, auth_api, "авторизуется")
+Rel(user, movies_api, "запрашивает")
+
+Rel(admin, auth_api, "авторизуется")
+Rel(admin, movies_admin, "использует")
+
+Rel(auth_api, ya_official_api, "аутентифицирует")
+Rel(auth_api, auth_redis, "читает и пишет")
+Rel_D(auth_api, auth_database, "читает и пишет")
+
+Rel(movies_admin, movies_database, "читает и пишет")
+
+Rel_U(movies_etl, movies_database, "читает")
+Rel(movies_etl, movies_elastic, "пишет")
+
+Rel(movies_api, movies_elastic, "читает")
+Rel(movies_api, movies_redis, "читает и пишет")
+
+
+Rel(ugc_flask, ugc_kafka, "пишет")
+Rel(ugc_etl, ugc_kafka, "читает")
+Rel(ugc_etl, ugc_clickhouse, "пишет")
+
+
+Rel(user, ugc_flask, "логирует события")
+Rel(movies_api, ugc_flask, "логирует события")
+Rel(auth_api, ugc_flask, "логирует события")
+Rel(movies_admin, ugc_flask, "логирует события")
+
+
+@enduml
