@@ -50,8 +50,11 @@ async def start_consumer(topic: str):
                 result = await consumer.getmany(timeout_ms=settings.consumer_timeout_ms)
                 values = [record.value for sublist in result.values() for record in sublist]
 
-                await load_stub(topic, values)  # загрузка данных; добавлю try-except, commit будет только при успешной
-                await consumer.commit()
+                try:
+                    await load_stub(topic, values)
+                    await consumer.commit()
+                except Exception:
+                    logger.exception("Error while loading in Clickhouse")
 
             else:
                 logger.info('"%s", records (%s/%s).' % (topic, new_records_count, settings.consumer_min_poll_records))
