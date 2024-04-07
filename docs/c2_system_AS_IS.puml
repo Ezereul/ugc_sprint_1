@@ -1,0 +1,51 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Container.puml
+
+title C2 диаграмма Онлайн-кинотеатра
+
+System_Boundary(yandex, "Яндекс ID") {
+    System_Ext(ya_official_api, "Официальный API")
+}
+
+Person(admin, "Администратор")
+Person(user, "Пользователь")
+
+
+System_Boundary(auth, "Система авторизации") {
+    Container(auth_api, "API авторизации", "FastAPI", "Авторизация, изменение данных об аккаунте")
+
+    ContainerDb(auth_redis, "Хранилище кэша", "Redis", "Хранение кэша авторизаций")
+    ContainerDb(auth_database, "Хранилище данных", "PostrgeSQL", "Хранение данных по авторизациям")
+}
+
+System_Boundary(cinema, "Онлайн-кинотеатр") {
+    Container(movies_admin, "Панель администратора", "Django", "Изменение контента")
+    Container(movies_etl, "ETL", "Python", "Перемещение обновлений контента в поиск")
+    Container(movies_api, "API контента", "FastAPI", "Выдача контента")
+
+    ContainerDb(movies_database, "Хранилище контента", "PostrgeSQL", "Хранение фильмов")
+    ContainerDb(movies_elastic, "Поисковый движок", "Elasticsearch", "Поиск по контенту")
+    ContainerDb(movies_redis, "Хранилище кэша", "Redis", "Хранение кэша контента")
+}
+
+Rel(user, auth_api, "авторизуется")
+Rel(user, movies_api, "запрашивает")
+
+Rel(admin, auth_api, "авторизуется")
+Rel(admin, movies_admin, "использует")
+
+Rel(auth_api, ya_official_api, "аутентифицирует")
+Rel(auth_api, auth_redis, "читает и пишет")
+Rel_D(auth_api, auth_database, "читает и пишет")
+
+Rel(movies_admin, movies_database, "читает и пишет")
+
+Rel_U(movies_etl, movies_database, "читает")
+Rel(movies_etl, movies_elastic, "пишет")
+
+Rel(movies_api, movies_elastic, "читает")
+Rel(movies_api, movies_redis, "читает и пишет")
+
+
+
+@enduml
