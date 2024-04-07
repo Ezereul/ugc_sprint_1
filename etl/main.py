@@ -1,16 +1,37 @@
 import asyncio
-import logging
+import json
 
-from src.config import settings
-from src.constants import Topics
-from src.consumer import get_kafka_consumer
+from aiohttp import ClientSession
+from aiochclient import ChClient
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(format=settings.log_format, level=settings.log_level)
+from src.core.config import settings, logger
+from src.core.constants import Topics
+from src.components.consumer import get_kafka_consumer
+from src.schemas import Click, Page, CustomEvent, View
 
 
-async def load_stub(topic: str, msgs: list):
-    logger.critical("CLICKHOUSE \"%s\" got new messages. Msgs=%s." % (topic, len(msgs)))
+async def load_stub(topic: str, values: list[Click | Page| CustomEvent | View]):
+    rows_to_insert = []
+    for event in values:
+        row = [event.user_id, event.time]
+
+        if topic == Topics.CLICKS:
+            row.extend([event.obj_id])
+        elif topic == Topics.VIEWS:
+            row.extend([event.film_id, event.timecode.strftime("%H:%M:%S.%f")])
+        elif topic == Topics.PAGES:
+            row.extend([event.url, event.duration])
+        elif topic == Topics.CUSTOM_EVENTS:
+            row.extend([json.dumps(event.information)])
+
+        rows_to_insert.append(tuple(row))
+
+    async with ClientSession() as session:
+        client = ChClient(session, url=f"http://{settings.clickhouse_1_host}:{settings.clickhouse_1_port}")
+        await client.execute(
+            f'INSERT INTO default.{topic}_distributed VALUES',
+            *rows_to_insert,
+        )
 
 
 async def start_consumer(topic: str):
@@ -27,8 +48,11 @@ async def start_consumer(topic: str):
                 result = await consumer.getmany(timeout_ms=settings.consumer_timeout_ms)
                 values = [record.value for sublist in result.values() for record in sublist]
 
-                await load_stub(topic, values)  # загрузка данных; добавлю try-except, save будет только при успешной
-                await consumer.commit()
+                try:
+                    await load_stub(topic, values)
+                    await consumer.commit()
+                except Exception:
+                    logger.exception("Error while loading in Clickhouse")
 
             else:
                 logger.info('"%s", records (%s/%s).' % (topic, new_records_count, settings.consumer_min_poll_records))
