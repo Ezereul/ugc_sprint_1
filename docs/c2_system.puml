@@ -9,6 +9,7 @@ System_Boundary(yandex, "Яндекс ID") {
 
 Person(admin, "Администратор")
 Person(user, "Пользователь")
+Person(analytic, "Аналитик")
 
 System_Boundary(ugc, "UGC") {
     Container(ugc_flask, "Внешний API", "Flask", "Получение событий из внешних систем")
@@ -17,17 +18,21 @@ System_Boundary(ugc, "UGC") {
     ContainerDb(ugc_clickhouse, "Хранилище событий", "Clickhouse", "Хранение и анализ событий")
 }
 
+System_Boundary(auth, "Система авторизации") {
+    Container(auth_api, "API авторизации", "FastAPI", "Авторизация, изменение данных об аккаунте")
+
+    ContainerDb(auth_redis, "Хранилище кэша", "Redis", "Хранение кэша авторизаций")
+    ContainerDb(auth_database, "Хранилище данных", "PostrgeSQL", "Хранение данных по авторизациям")
+}
+
 System_Boundary(cinema, "Онлайн-кинотеатр") {
     Container(movies_admin, "Панель администратора", "Django", "Изменение контента")
     Container(movies_etl, "ETL", "Python", "Перемещение обновлений контента в поиск")
     Container(movies_api, "API контента", "FastAPI", "Выдача контента")
-    Container(auth_api, "API авторизации", "FastAPI", "Авторизация, изменение данных об аккаунте")
 
     ContainerDb(movies_database, "Хранилище контента", "PostrgeSQL", "Хранение фильмов")
     ContainerDb(movies_elastic, "Поисковый движок", "Elasticsearch", "Поиск по контенту")
     ContainerDb(movies_redis, "Хранилище кэша", "Redis", "Хранение кэша контента")
-    ContainerDb(auth_redis, "Хранилище кэша", "Redis", "Хранение кэша авторизаций")
-    ContainerDb(auth_database, "Хранилище данных", "PostrgeSQL", "Хранение данных по авторизациям")
 }
 
 Rel(user, auth_api, "авторизуется")
@@ -35,6 +40,8 @@ Rel(user, movies_api, "запрашивает")
 
 Rel(admin, auth_api, "авторизуется")
 Rel(admin, movies_admin, "использует")
+
+Rel_R(analytic, ugc_clickhouse, "использует")
 
 Rel(auth_api, ya_official_api, "аутентифицирует")
 Rel(auth_api, auth_redis, "читает и пишет")
