@@ -25,8 +25,6 @@ async def load_stub(topic: str, values: list[Click | Page| CustomEvent | View]):
             row.extend([json.dumps(event.information)])
 
         rows_to_insert.append(tuple(row))
-    print(rows_to_insert)
-
 
     async with ClientSession() as session:
         client = ChClient(session, url=f"http://{settings.clickhouse_1_host}:{settings.clickhouse_1_port}")
