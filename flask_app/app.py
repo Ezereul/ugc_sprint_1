@@ -9,13 +9,16 @@ from api.v1.clicks import Clicks
 from api.v1.custom_events import CustomEvents
 from api.v1.films import Films
 from api.v1.pages import Pages
+from config.settings import settings
 from kafka_topics.create_topics import create_topics
 
 app = Flask(__name__)
 
+app.config.from_object(settings)
+app.logger.debug(app.config)
+
 api = Api(app)
 swagger = Swagger(app)
-app.config.from_pyfile("config/settings.py")
 
 producer = KafkaProducer(bootstrap_servers=app.config['KAFKA_URL'],
                          value_serializer=orjson.dumps,
@@ -30,7 +33,5 @@ api.add_resource(CustomEvents, '/custom_events/')
 
 create_topics()
 
-
 if __name__ == '__main__':
-
     app.run()

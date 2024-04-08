@@ -21,3 +21,4 @@ marshmallow = "3.21.1"
 gevent = "24.2.1"
 python-dotenv = "1.0.1"
 flask-jwt-extended = {extras = ["asymmetric_crypto"], version = "4.6.0"}
+pydantic-settings = "2.2.1"
