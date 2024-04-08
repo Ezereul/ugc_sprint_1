@@ -1,14 +1,12 @@
-import datetime
 from http import HTTPStatus
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource, reqparse
 
-from api.utils import send_message
-from kafka_topics.create_topics import Topics
 from schemas.pages import PagesSchema
+from services.pages import PagesService
 
-parser = reqparse.RequestParser()
+parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('url', location='json')
 parser.add_argument('time', location='json', type=int)
 parser.add_argument('duration', location='json', type=int)
@@ -16,6 +14,7 @@ parser.add_argument('duration', location='json', type=int)
 
 class Pages(Resource):
     schema = PagesSchema()
+    service = PagesService()
 
     @jwt_required()
     def post(self, *args, **kwargs):
@@ -53,8 +52,7 @@ class Pages(Resource):
         """
         user_id = get_jwt_identity()
         args = parser.parse_args()
-        args['time'] = datetime.datetime.fromtimestamp(args['time'])
-        args['user_id'] = user_id
-        user_event = self.schema.dump(args)
-        send_message(Topics.PAGES, user_event['user_id'], user_event)
+
+        self.service.send(user_id, args)
+
         return '', HTTPStatus.CREATED
