@@ -1,4 +1,4 @@
-from flasgger import Schema
+from marshmallow import Schema
 
 from kafka_topics.send import send_message
 

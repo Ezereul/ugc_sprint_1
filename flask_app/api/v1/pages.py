@@ -8,7 +8,7 @@ from services.pages import PagesService
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('url', location='json')
-parser.add_argument('time', location='json', type=int)
+parser.add_argument('time', location='json', type=int, store_missing=False)
 parser.add_argument('duration', location='json', type=int)
 
 

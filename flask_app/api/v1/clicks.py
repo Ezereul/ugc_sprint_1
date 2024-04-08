@@ -8,7 +8,7 @@ from services.clicks import ClicksService
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('obj_id', location='json')
-parser.add_argument('time', location='json', type=int)
+parser.add_argument('time', location='json', type=int, store_missing=False)
 
 
 class Clicks(Resource):

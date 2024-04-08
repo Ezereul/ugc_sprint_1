@@ -8,7 +8,7 @@ from services.custom_events import CustomEventsService
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('information', location='json', type=dict)
-parser.add_argument('time', location='json', type=int)
+parser.add_argument('time', location='json', type=int, store_missing=False)
 
 
 class CustomEvents(Resource):

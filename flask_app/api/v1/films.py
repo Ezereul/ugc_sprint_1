@@ -8,7 +8,7 @@ from services.films import FilmsService
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('film_id', location='json')
-parser.add_argument('time', location='json', type=int)
+parser.add_argument('time', location='json', type=int, store_missing=False)
 parser.add_argument('timecode', location='json')
 
 
