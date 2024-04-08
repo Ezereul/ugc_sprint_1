@@ -5,6 +5,4 @@ from schemas.base import BaseSchema
 
 class PagesSchema(BaseSchema):
     url = fields.Str()
-    duration = fields.Int()
-
-
+    duration = fields.Float()

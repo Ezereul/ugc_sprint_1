@@ -43,12 +43,12 @@ class Pages(Resource):
                   type: float
                   description: Duration of page view in seconds.
                   default: None
-                  example: 16.0
+                  example: 14.1
         security:
           - cookieAuth: []
         responses:
           201:
-            description: Responses status
+            description: Event saved
         """
         user_id = get_jwt_identity()
         args = parser.parse_args()

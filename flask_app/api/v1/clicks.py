@@ -31,17 +31,18 @@ class Clicks(Resource):
                 obj_id:
                   type: string
                   description: Object id.
-                  default: "string"
+                  default: None
+                  example: "string"
                 time:
                   type: int
-                  description: Time when event happened.
+                  description: Timestamp when event happened.
                   default: None
                   example: 1646240200
         security:
           - cookieAuth: []
         responses:
           201:
-            description: Responses status
+            description: Event saved
         """
         user_id = get_jwt_identity()
         args = parser.parse_args()

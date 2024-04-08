@@ -42,7 +42,7 @@ class CustomEvents(Resource):
           - cookieAuth: []
         responses:
           201:
-            description: Responses status
+            description: Event saved
         """
         user_id = get_jwt_identity()
         args = parser.parse_args()
