@@ -1,10 +1,10 @@
 from http import HTTPStatus
 
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 
-from schemas.pages import PagesSchema
-from services.pages import PagesService
+from flask_app.schemas.pages import PagesSchema
+from flask_app.services.pages import PagesService
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('url', location='json')

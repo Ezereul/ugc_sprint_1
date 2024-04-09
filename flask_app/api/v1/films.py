@@ -1,10 +1,10 @@
 from http import HTTPStatus
 
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 
-from schemas.films import FilmsSchema
-from services.films import FilmsService
+from flask_app.schemas.films import FilmsSchema
+from flask_app.services.films import FilmsService
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('film_id', location='json')

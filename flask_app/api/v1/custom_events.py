@@ -3,8 +3,8 @@ from http import HTTPStatus
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 
-from schemas.custom_events import CustomEventsSchema
-from services.custom_events import CustomEventsService
+from flask_app.schemas.custom_events import CustomEventsSchema
+from flask_app.services.custom_events import CustomEventsService
 
 parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('information', location='json', type=dict)
