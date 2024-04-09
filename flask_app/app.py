@@ -12,7 +12,7 @@ from flask_app.api.v1.clicks import Clicks
 from flask_app.api.v1.custom_events import CustomEvents
 from flask_app.api.v1.films import Films
 from flask_app.api.v1.pages import Pages
-from flask_app.kafka_topics.create_topics import create_topics
+from flask_app.kafka_topics.create import create_topics
 from flask_app.config.settings import settings
 
 

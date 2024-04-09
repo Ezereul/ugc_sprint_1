@@ -13,9 +13,7 @@ class Topics(StrEnum):
 
 
 
-def create_topics():
-    from app import app
-
+def create_topics(app):
     admin_client = KafkaAdminClient(
         bootstrap_servers=app.config['KAFKA_URL'],
     )
