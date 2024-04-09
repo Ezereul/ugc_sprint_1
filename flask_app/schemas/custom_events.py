@@ -1,9 +1,7 @@
-import datetime
+from marshmallow import fields
 
-from marshmallow import Schema, fields
+from schemas.base import BaseSchema
 
 
-class CustomEventsSchema(Schema):
-    user_id = fields.UUID(dump_default=None, load_default=None, allow_none=True)
-    time = fields.DateTime(dump_default=datetime.datetime.now())
+class CustomEventsSchema(BaseSchema):
     information = fields.Mapping()

@@ -1,20 +1,19 @@
-import datetime
 from http import HTTPStatus
 
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 
-from api.utils import send_message
-from kafka_topics.create_topics import Topics
 from schemas.custom_events import CustomEventsSchema
+from services.custom_events import CustomEventsService
 
-parser = reqparse.RequestParser()
+parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('information', location='json', type=dict)
-parser.add_argument('time', location='json', type=int)
+parser.add_argument('time', location='json', type=int, store_missing=False)
 
 
 class CustomEvents(Resource):
     schema = CustomEventsSchema()
+    service = CustomEventsService()
 
     @jwt_required()
     def post(self, *args, **kwargs):
@@ -43,12 +42,11 @@ class CustomEvents(Resource):
           - cookieAuth: []
         responses:
           201:
-            description: Responses status
+            description: Event saved
         """
         user_id = get_jwt_identity()
         args = parser.parse_args()
-        args['time'] = datetime.datetime.fromtimestamp(args['time'])
-        args['user_id'] = user_id
-        user_event = self.schema.dump(args)
-        send_message(Topics.CUSTOM_EVENTS, user_event['user_id'], user_event)
+
+        self.service.send(user_id, args)
+
         return '', HTTPStatus.CREATED
