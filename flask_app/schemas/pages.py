@@ -1,10 +1,8 @@
-import datetime
+from marshmallow import fields
 
-from marshmallow import Schema, fields
+from schemas.base import BaseSchema
 
 
-class PagesSchema(Schema):
+class PagesSchema(BaseSchema):
     url = fields.Str()
-    user_id = fields.UUID(dump_default=None, load_default=None, allow_none=True)
-    duration = fields.Int()
-    time = fields.DateTime(dump_default=datetime.datetime.now())
+    duration = fields.Float()

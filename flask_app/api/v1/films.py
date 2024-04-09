@@ -1,20 +1,19 @@
-import datetime
 from http import HTTPStatus
 
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 
-from flask_app.api.utils import send_message
-from flask_app.kafka_topics.create_topics import Topics
 from flask_app.schemas.films import FilmsSchema
+from flask_app.services.films import FilmsService
 
-parser = reqparse.RequestParser()
+parser = reqparse.RequestParser(bundle_errors=True)
 parser.add_argument('film_id', location='json')
-parser.add_argument('time', location='json', type=int)
+parser.add_argument('time', location='json', type=int, store_missing=False)
 parser.add_argument('timecode', location='json')
 
 
 class Films(Resource):
+    service = FilmsService()
     schema = FilmsSchema()
 
     @jwt_required()
@@ -50,13 +49,11 @@ class Films(Resource):
           - cookieAuth: []
         responses:
           201:
-            description: Responses status
+            description: Event saved
         """
         user_id = get_jwt_identity()
         args = parser.parse_args()
-        args['time'] = datetime.datetime.fromtimestamp(args['time'])
-        args['timecode'] = datetime.datetime.strptime(args['timecode'], '%H:%M:%S.%f')
-        args['user_id'] = user_id
-        user_event = self.schema.dump(args)
-        send_message(Topics.VIEWS, user_event['user_id'], user_event)
+
+        self.service.send(user_id, args)
+
         return '', HTTPStatus.CREATED
