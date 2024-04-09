@@ -1,5 +1,8 @@
+from flask import current_app
+
+
 def send_message(topic, key, value):
-    from flask_app.app import producer
+    producer = current_app.producer
 
     producer.send(
         topic=topic,

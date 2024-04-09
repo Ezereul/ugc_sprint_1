@@ -3,7 +3,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-
 basedir = Path(__file__).parent.parent.parent
 load_dotenv(path.join(basedir, ".env"))
 
