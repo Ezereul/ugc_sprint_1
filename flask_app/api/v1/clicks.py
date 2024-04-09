@@ -1,12 +1,12 @@
 import datetime
 from http import HTTPStatus
 
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource, reqparse
 
-from api.utils import send_message
-from kafka_topics.create_topics import Topics
-from schemas.clicks import ClickSchema
+from flask_app.api.utils import send_message
+from flask_app.kafka_topics.create_topics import Topics
+from flask_app.schemas.clicks import ClickSchema
 
 parser = reqparse.RequestParser()
 parser.add_argument('obj_id', location='json')
